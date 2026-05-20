@@ -42,7 +42,7 @@ button {
 
 
 
-<div id="ui">WASD/ARROWS: MOVE | MOUSE: LOOK (NO LOCK) | SPACE/CTRL: FLY | F: EXIT</div>
+<div id="ui">A/D or ARROWS: STEER | MOUSE: LOOK (NO LOCK) | SPACE/CH_UP: FLY UP | CTRL/CH_DOWN: FLY DOWN | 1: EXIT | AUTO-DRIVING ACTIVE</div>
 
 <div id="sign67">67</div>
 
@@ -188,7 +188,9 @@ document.addEventListener('keydown', e => {
 
     keys[e.code] = true;
 
-    if (e.key.toLowerCase() === 'f' && gameStarted) {
+    // EXIT CAR: Key '1' (Digit1)
+
+    if ((e.code === 'Digit1' || e.key === '1') && gameStarted) {
 
         inCar = !inCar;
 
@@ -244,21 +246,27 @@ function animate() {
 
 
 
-    if (keys['KeyW'] || keys['ArrowUp']) {
+    // AUTO DRIVE: Automatically moves forward relative to look direction
 
-        target.position.x -= Math.sin(yaw) * s;
+    target.position.x -= Math.sin(yaw) * s;
 
-        target.position.z -= Math.cos(yaw) * s;
+    target.position.z -= Math.cos(yaw) * s;
 
-    }
+
+
+    // Manual backup/brakes if pressing S or Down Arrow
 
     if (keys['KeyS'] || keys['ArrowDown']) {
 
-        target.position.x += Math.sin(yaw) * s;
+        target.position.x += Math.sin(yaw) * s * 1.5; 
 
-        target.position.z += Math.cos(yaw) * s;
+        target.position.z += Math.cos(yaw) * s * 1.5;
 
     }
+
+    
+
+    // Stepping/strafing left and right with keys/remote arrows
 
     if (keys['KeyA'] || keys['ArrowLeft']) {
 
@@ -278,9 +286,17 @@ function animate() {
 
 
 
-    if (keys['Space']) target.position.y += 0.5;
+    // FLY UP: Space OR Channel Up (PageUp)
 
-    if (keys['ControlLeft']) target.position.y -= 0.5;
+    if (keys['Space'] || keys['PageUp']) target.position.y += 0.5;
+
+    
+
+    // FLY DOWN: Control Left OR Channel Down (PageDown)
+
+    if (keys['ControlLeft'] || keys['PageDown']) target.position.y -= 0.5;
+
+    
 
     if (target.position.y < 0) target.position.y = 0;
 
@@ -300,7 +316,25 @@ function animate() {
 
 }
 
+
+
+// AUTO START TRIGGER 
+
+window.addEventListener('DOMContentLoaded', () => {
+
+    const startButton = document.getElementById('startBtn');
+
+    if (startButton) {
+
+        startButton.click();
+
+    }
+
+});
+
 </script>
+
+
 
 </body>
 
