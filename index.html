@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>67 Racing - No-Lock Mouse</title>
+
+<style>
+
+body { margin:0; overflow:hidden; background:#000; font-family: monospace; }
+
+#launcher {
+
+  position:absolute; top:0; left:0; width:100%; height:100%;
+
+  background: #000; color:#0ff; display:flex; flex-direction:column;
+
+  justify-content:center; align-items:center; z-index:999;
+
+}
+
+button { 
+
+  font-size:3em; padding:20px 50px; cursor:pointer; background:#f0f; 
+
+  border:none; color:#fff; border-radius:10px; font-weight:bold;
+
+}
+
+#ui { position:absolute; top:10px; left:10px; color:#fff; z-index:10; pointer-events:none; text-shadow: 2px 2px #000; }
+
+#sign67 { position: absolute; top: 10px; right: 10px; color: #0ff; font-size: 2em; font-weight: bold; border: 3px solid #0ff; padding: 5px; z-index: 10; background: #000; }
+
+</style>
+
+</head>
+
+<body>
+
+
+
+<div id="ui">WASD/ARROWS: MOVE | MOUSE: LOOK (NO LOCK) | SPACE/CTRL: FLY | F: EXIT</div>
+
+<div id="sign67">67</div>
+
+
+
+<div id="launcher">
+
+  <h1 style="color:#f0f; font-size:3em;">67 RACING</h1>
+
+  <button id="startBtn">START</button>
+
+</div>
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+
+
+<script>
+
+let scene, camera, renderer, car, player;
+
+let keys = {}, gameStarted = false, inCar = true;
+
+let yaw = 0, pitch = 0, lastBlockZ = 0;
+
+
+
+init();
+
+
+
+document.getElementById('startBtn').onclick = function() {
+
+    document.getElementById('launcher').style.display = 'none';
+
+    gameStarted = true;
+
+    
+
+    // Play audio
+
+    const audio = new Audio("https://ncs.io/track/download/442dfd89-c291-41b4-b93a-18c0ff73c1dc");
+
+    audio.loop = true;
+
+    audio.play().catch(() => {});
+
+    animate();
+
+};
+
+
+
+function init() {
+
+    scene = new THREE.Scene();
+
+    scene.background = new THREE.Color(0x87ceeb);
+
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+
+
+
+    renderer = new THREE.WebGLRenderer({ antialias: false });
+
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    document.body.appendChild(renderer.domElement);
+
+
+
+    // CAR
+
+    car = new THREE.Group();
+
+    const body = new THREE.Mesh(new THREE.BoxGeometry(2, 0.8, 4), new THREE.MeshBasicMaterial({color: 0xff0000}));
+
+    car.add(body);
+
+    const lMat = new THREE.MeshBasicMaterial({color: 0xffff00});
+
+    const l1 = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.2, 0.1), lMat);
+
+    l1.position.set(-0.6, 0.2, 2);
+
+    car.add(l1);
+
+    const l2 = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.2, 0.1), lMat);
+
+    l2.position.set(0.6, 0.2, 2);
+
+    car.add(l2);
+
+    scene.add(car);
+
+
+
+    player = new THREE.Mesh(new THREE.BoxGeometry(0.7, 2, 0.7), new THREE.MeshBasicMaterial({color: 0x00ff00}));
+
+    player.visible = false;
+
+    scene.add(player);
+
+
+
+    for(let i=0; i<40; i++) addBlock();
+
+}
+
+
+
+function addBlock() {
+
+    const road = new THREE.Mesh(new THREE.BoxGeometry(12, 0.5, 20), new THREE.MeshBasicMaterial({color: 0x333333}));
+
+    road.position.set(0, -1, lastBlockZ);
+
+    scene.add(road);
+
+
+
+    for(let i=0; i<2; i++) {
+
+        const h = Math.random() * 8 + 3;
+
+        const b = new THREE.Mesh(new THREE.BoxGeometry(4, h, 4), new THREE.MeshBasicMaterial({color: Math.random() * 0xffffff}));
+
+        b.position.set(i === 0 ? -10 : 10, (h/2)-1, lastBlockZ);
+
+        scene.add(b);
+
+    }
+
+    lastBlockZ -= 20;
+
+}
+
+
+
+document.addEventListener('keydown', e => {
+
+    keys[e.code] = true;
+
+    if (e.key.toLowerCase() === 'f' && gameStarted) {
+
+        inCar = !inCar;
+
+        player.visible = !inCar;
+
+        if (!inCar) player.position.copy(car.position).x += 3;
+
+        else car.position.copy(player.position);
+
+    }
+
+});
+
+document.addEventListener('keyup', e => keys[e.code] = false);
+
+
+
+// STABLE MOUSE LOOK (NO LOCK REQUIRED)
+
+document.addEventListener('mousemove', e => {
+
+    if (!gameStarted) return;
+
+    // Calculate rotation based on screen position
+
+    const centerX = window.innerWidth / 2;
+
+    const centerY = window.innerHeight / 2;
+
+    yaw = -(e.clientX - centerX) * 0.003;
+
+    pitch = -(e.clientY - centerY) * 0.002;
+
+    // Cap pitch
+
+    pitch = Math.max(-0.8, Math.min(0.5, pitch));
+
+});
+
+
+
+function animate() {
+
+    requestAnimationFrame(animate);
+
+    if (!gameStarted) return;
+
+
+
+    let target = inCar ? car : player;
+
+    let s = 0.8;
+
+
+
+    if (keys['KeyW'] || keys['ArrowUp']) {
+
+        target.position.x -= Math.sin(yaw) * s;
+
+        target.position.z -= Math.cos(yaw) * s;
+
+    }
+
+    if (keys['KeyS'] || keys['ArrowDown']) {
+
+        target.position.x += Math.sin(yaw) * s;
+
+        target.position.z += Math.cos(yaw) * s;
+
+    }
+
+    if (keys['KeyA'] || keys['ArrowLeft']) {
+
+        target.position.x -= Math.cos(yaw) * s;
+
+        target.position.z += Math.sin(yaw) * s;
+
+    }
+
+    if (keys['KeyD'] || keys['ArrowRight']) {
+
+        target.position.x += Math.cos(yaw) * s;
+
+        target.position.z -= Math.sin(yaw) * s;
+
+    }
+
+
+
+    if (keys['Space']) target.position.y += 0.5;
+
+    if (keys['ControlLeft']) target.position.y -= 0.5;
+
+    if (target.position.y < 0) target.position.y = 0;
+
+
+
+    const camOffset = new THREE.Vector3(0, 5, 12).applyQuaternion(new THREE.Quaternion().setFromEuler(new THREE.Euler(pitch, yaw, 0, 'YXZ')));
+
+    camera.position.copy(target.position).add(camOffset);
+
+    camera.lookAt(target.position);
+
+
+
+    if (target.position.z - lastBlockZ < 150) addBlock();
+
+    renderer.render(scene, camera);
+
+}
+
+</script>
+
+</body>
+
+</html>
