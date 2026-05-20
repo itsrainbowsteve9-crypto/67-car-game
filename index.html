@@ -1,5 +1,11 @@
 <!DOCTYPE html>
-
+// Automatically trigger the start button function once everything loads
+window.addEventListener('DOMContentLoaded', () => {
+    const startButton = document.getElementById('startBtn');
+    if (startButton) {
+        startButton.click();
+    }
+});
 <html lang="en">
 
 <head>
