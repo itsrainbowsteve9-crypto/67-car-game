@@ -42,7 +42,7 @@ button {
 
 
 
-<div id="ui">A/D or ARROWS: STEER | MOUSE: LOOK (NO LOCK) | SPACE/CH_UP: FLY UP | CTRL/CH_DOWN: FLY DOWN | F: EXIT | AUTO-DRIVING ACTIVE</div>
+<div id="ui">A/D or ARROWS: STEER | MOUSE: LOOK (NO LOCK) | SPACE/CH_UP: FLY UP | CTRL/CH_DOWN: FLY DOWN | 1: EXIT | AUTO-DRIVING ACTIVE</div>
 
 <div id="sign67">67</div>
 
@@ -152,7 +152,7 @@ function init() {
 
     for(let i=0; i<40; i++) addBlock();
 
-}
+} grading
 
 
 
@@ -188,7 +188,9 @@ document.addEventListener('keydown', e => {
 
     keys[e.code] = true;
 
-    if (e.key.toLowerCase() === 'f' && gameStarted) {
+    // EXIT CAR: Switched from key 'f' to '1' (Digit1)
+
+    if ((e.code === 'Digit1' || e.key === '1') && gameStarted) {
 
         inCar = !inCar;
 
@@ -286,7 +288,7 @@ function animate() {
 
     // FLY UP: Space OR Channel Up (PageUp)
 
-    if (keys['Space'] || keys['PageUp']) target.position.y += 0.5;
+    if (keys['Space'] || keys['PageUp']) target.position.y += 0.5; grading
 
     
 
